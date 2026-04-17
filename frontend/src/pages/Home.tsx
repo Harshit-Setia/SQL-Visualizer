@@ -66,7 +66,7 @@ const Home = () => {
           SQL<span className="text-primary">Query</span>
           <span className="text-white">Visualizer</span>
         </h1>
-        <div className="w-20 h-10 rounded-full bg-surface-high border border-surface-bright" />
+        {/* <div className="w-20 h-10 rounded-full bg-surface-high border border-surface-bright" /> */}
       </header>
 
       {/* 2. PERFORMANCE HUD */}
