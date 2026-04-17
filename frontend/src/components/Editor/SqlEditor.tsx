@@ -8,6 +8,7 @@ interface SqlEditorProps {
 export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
   const [query, setQuery] = useState("");
   const [cursorPos, setCursorPos] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleCursorMove = () => {
@@ -23,8 +24,10 @@ export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    // 2. Insert the Cursor Marker at the correct position
-    const textWithMarker = safeCode.slice(0, cursorPos) + "█" + safeCode.slice(cursorPos);
+    // 2. Insert the Cursor Marker at the correct position if focused
+    const textWithMarker = isFocused 
+      ? safeCode.slice(0, cursorPos) + "█" + safeCode.slice(cursorPos)
+      : safeCode;
 
     // 3. Highlighting Logic
     const keywords = [
@@ -64,8 +67,11 @@ export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
       </div>
 
       {/* Editor Surface */}
-      <div className="bg-surface-lowest p-6 min-h-[300px] font-mono text-sm relative group">
-        <div className="flex gap-6 h-full">
+      <div 
+        className="bg-surface-lowest p-6 min-h-[300px] font-mono text-sm relative group cursor-text"
+        onClick={() => textareaRef.current?.focus()}
+      >
+        <div className="flex gap-6 h-full min-h-[250px]">
           {/* Line Numbers */}
           <div className="text-on-surface-variant/20 select-none text-right w-5 leading-6 border-r border-surface-bright/10 pr-4 italic">
             {query.split("\n").map((_, i) => (
@@ -93,6 +99,8 @@ export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
               onKeyUp={handleCursorMove}
               onClick={handleCursorMove}
               onSelect={handleCursorMove}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               spellCheck={false}
               className="absolute inset-0 bg-transparent text-transparent caret-transparent outline-none resize-none w-full h-full whitespace-pre-wrap break-words z-20 overflow-hidden"
             />

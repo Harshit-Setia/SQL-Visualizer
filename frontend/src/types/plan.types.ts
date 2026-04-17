@@ -2,6 +2,8 @@ export interface PlanNode {
   id: string;
   type: string;
   label: string;
+  rows?: number;
+  cost?: number;
 }
 
 export interface PlanEdge {
