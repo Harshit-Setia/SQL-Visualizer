@@ -3,7 +3,9 @@ export type NodeType= "SCAN" | "FILTER" | "PROJECTION" | "JOIN"
 export interface PlanNode{
     id:string,
     type:NodeType,
-    label:string
+    label:string,
+    cost: number,
+    rows: number
 }
 
 export interface PlanEdge{
