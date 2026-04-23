@@ -1,4 +1,5 @@
 export const getPlan = async (query: string) => {
+  query = query.trim().replace(/;$/, "")
   const res = await fetch("http://localhost:5050/api/plan", {
     method: "POST",
     headers: {
@@ -7,11 +8,11 @@ export const getPlan = async (query: string) => {
     body: JSON.stringify({ query }),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch plan");
-  }
-
   const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw data;
+  }
 
   return data.data;
 };

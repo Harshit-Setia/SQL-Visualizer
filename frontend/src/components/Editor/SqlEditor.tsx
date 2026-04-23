@@ -3,9 +3,11 @@ import { useState, useRef } from "react";
 interface SqlEditorProps {
   onRun: (query: string) => void;
   isLoading?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errorDetails?: any;
 }
 
-export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
+export const SqlEditor = ({ onRun, isLoading, errorDetails }: SqlEditorProps) => {
   const [query, setQuery] = useState("");
   const [cursorPos, setCursorPos] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
@@ -18,38 +20,77 @@ export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
   };
 
   const highlightAndInjectCursor = (code: string) => {
-    // 1. Escape HTML special characters to prevent XSS/Bugs
-    let safeCode = code
+    let injectedCode = code;
+    
+    let startIndex = -1;
+    let endIndex = -1;
+    
+    if (errorDetails?.location) {
+      const { start, end } = errorDetails.location;
+      
+      const getOffset = (pos: { line: number, column: number }) => {
+        const lines = code.split("\n");
+        const prevLines = lines.slice(0, pos.line - 1).join("\n");
+        return (prevLines ? prevLines.length + 1 : 0) + pos.column - 1;
+      };
+      
+      startIndex = getOffset(start);
+      endIndex = getOffset(end);
+      
+      if (endIndex < startIndex || startIndex < 0 || endIndex > code.length) {
+         startIndex = -1;
+      }
+      
+      // Expand endIndex to cover the rest of the invalid word for better UX
+      if (startIndex >= 0) {
+        while (endIndex < code.length && /[a-zA-Z0-9_]/.test(code.charAt(endIndex))) {
+          endIndex++;
+        }
+      }
+    }
+
+    const markers: { index: number, text: string }[] = [];
+    if (isFocused) markers.push({ index: cursorPos, text: "🟢" });
+    
+    if (startIndex >= 0) {
+      markers.push({ index: startIndex, text: "🔴" });
+      markers.push({ index: endIndex, text: "🔵" });
+    }
+
+    markers.sort((a, b) => b.index - a.index);
+    for (const m of markers) {
+       injectedCode = injectedCode.slice(0, m.index) + m.text + injectedCode.slice(m.index);
+    }
+    
+    let safeCode = injectedCode
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    // 2. Insert the Cursor Marker at the correct position if focused
-    const textWithMarker = isFocused 
-      ? safeCode.slice(0, cursorPos) + "█" + safeCode.slice(cursorPos)
-      : safeCode;
-
-    // 3. Highlighting Logic
     const keywords = [
       "SELECT", "FROM", "JOIN", "ON", "WHERE", "AND", "OR",
       "ORDER BY", "LIMIT", "DESC", "ASC", "LEFT JOIN", "GROUP BY"
     ];
 
-    // Create a regex that matches any keyword, case-insensitive (\bi)
     const regex = new RegExp(`\\b(${keywords.join("|")})\\b`, "gi");
 
-    // Replace keywords while PRESERVING the original case (e.g., Select stays Select)
-    let highlighted = textWithMarker.replace(regex, (matched) => {
+    let highlighted = safeCode.replace(regex, (matched) => {
       return `<span class="text-primary font-bold">${matched}</span>`;
     });
 
-    // 4. Style strings (text inside ' ')
     highlighted = highlighted.replace(/'(.*?)'/g, '<span class="text-green-400">\'$1\'</span>');
 
-    // 5. Replace the marker with the actual glowing cursor
     const cursorHtml = `<span class="inline-block w-[2px] h-[1.1em] bg-primary shadow-[0_0_12px_#FF8C00] align-middle animate-pulse mx-[1px]"></span>`;
+    const errStartHtml = `<span class="underline decoration-red-500 decoration-wavy decoration-2 bg-red-500/10">`;
+    const errEndHtml = `</span>`;
+
+    highlighted = highlighted.replace("🟢", cursorHtml);
+    if (startIndex >= 0) {
+      highlighted = highlighted.replace("🔴", errStartHtml);
+      highlighted = highlighted.replace("🔵", errEndHtml);
+    }
     
-    return highlighted.replace("█", cursorHtml);
+    return highlighted;
   };
 
   return (
@@ -107,6 +148,17 @@ export const SqlEditor = ({ onRun, isLoading }: SqlEditorProps) => {
           </div>
         </div>
       </div>
+
+      {/* Error Details Pane */}
+      {errorDetails && errorDetails.error && (
+        <div className="bg-red-950/40 p-4 border-t border-red-500/20 flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            Syntax Error
+          </div>
+          <p className="text-red-300/80 text-sm font-mono mt-1 whitespace-pre-wrap break-words">Invalid SQL syntax. Check your query and try again.</p>
+        </div>
+      )}
 
       {/* Action Bar */}
       <div className="p-4 flex flex-col gap-4 bg-background/40 backdrop-blur-sm border-t border-surface-bright/10">

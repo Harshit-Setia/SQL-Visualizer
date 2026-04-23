@@ -32,7 +32,8 @@ export const parseQuery:RequestHandler = (req, res) => {
   } catch (error: any) {
     const response: ApiResponse<null> = {
       success: false,
-      error: error.message || "Something went wrong"
+      error: error.message || "Something went wrong",
+      location: error.location
     }
 
     return res.status(400).json(response)

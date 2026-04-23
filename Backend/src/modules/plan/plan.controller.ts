@@ -28,7 +28,8 @@ export const getPlan = (req: Request, res: Response) => {
   } catch (error: any) {
     const response: ApiResponse<null> = {
       success: false,
-      error: error.message
+      error: error.message,
+      location: error.location
     }
 
     return res.status(400).json(response)

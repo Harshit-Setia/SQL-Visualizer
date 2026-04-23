@@ -18,7 +18,7 @@ const StatCard = ({ label, value, unit, isWip }: { label: string; value: string;
 
     {/* THE WORK IN PROGRESS OVERLAY */}
     {isWip && (
-      <div className="absolute inset-0 z-20 bg-background/60 backdrop-blur-[4px] flex flex-col items-center justify-center rounded-lg border border-primary/20 cursor-not-allowed group">
+      <div className="absolute inset-0 z-20 bg-background/60 backdrop-blur-xs flex flex-col items-center justify-center rounded-lg border border-primary/20 cursor-not-allowed group">
         {/* Caution Pattern Background */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[repeating-linear-gradient(-45deg,#FF8C00,#FF8C00_10px,transparent_10px,transparent_20px)]" />
         
@@ -37,11 +37,13 @@ const Home = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<any>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const graphRef = useRef<HTMLDivElement>(null);
 
   const handleRun = async (query: string) => {
     setLoading(true);
+    setErrorDetails(null);
     try {
       const plan = await getPlan(query);
       const transformed = transformPlan(plan);
@@ -53,13 +55,14 @@ const Home = () => {
       }, 100);
     } catch (error) {
       console.error("Query failed", error);
+      setErrorDetails(error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto min-h-screen p-8 flex flex-col gap-10">
+    <div className="max-w-350 mx-auto min-h-screen p-8 flex flex-col gap-10">
       {/* 1. APP HEADER */}
       <header className="flex justify-between items-center">
         <h1 className="font-display font-bold text-2xl tracking-tighter text-white">
@@ -80,7 +83,7 @@ const Home = () => {
       <div className="grid grid-cols-12 gap-8 items-start">
         {/* LEFT: Editor & Visualizer */}
         <div className="col-span-8 flex flex-col gap-8">
-          <SqlEditor onRun={handleRun} isLoading={loading} />
+          <SqlEditor onRun={handleRun} isLoading={loading} errorDetails={errorDetails} />
 
           <div 
             ref={graphRef}
@@ -105,7 +108,7 @@ const Home = () => {
             </div>
 
             {/* Graph Container */}
-            <div className={`bg-surface-lowest/50 rounded-lg ${isFullScreen ? 'flex-1 min-h-0' : 'h-[500px] w-full'} relative border border-surface-bright/10 overflow-hidden`}>
+            <div className={`bg-surface-lowest/50 rounded-lg ${isFullScreen ? 'flex-1 min-h-0' : 'h-125 w-full'} relative border border-surface-bright/10 overflow-hidden`}>
               {graph ? (
                 <PlanGraph {...graph} />
               ) : (
