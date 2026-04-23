@@ -59,7 +59,6 @@ export const generatePlan = (rawAst: unknown): PlanData => {
     return node.id
   }
 
-  // 🔹 SCAN first table
   const firstTable = ast.from[0].table
   let lastRows = tableStats[firstTable] || 1000
 
@@ -70,7 +69,6 @@ export const generatePlan = (rawAst: unknown): PlanData => {
     lastRows
   )
 
-  // 🔥 HANDLE JOINS
   for (let i = 1; i < ast.from.length; i++) {
     const tableObj = ast.from[i]
 
@@ -109,7 +107,6 @@ export const generatePlan = (rawAst: unknown): PlanData => {
     lastNodeId = joinId
   }
 
-  // 🔹 WHERE → FILTER
   if (ast.where) {
     const filterCondition = parseExpr(ast.where)
 
@@ -132,7 +129,6 @@ export const generatePlan = (rawAst: unknown): PlanData => {
     lastNodeId = filterId
   }
 
-  // 🔹 PROJECTION
   let columns: string
 
   if (ast.columns === "*") {

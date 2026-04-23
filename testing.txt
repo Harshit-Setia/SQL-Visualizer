@@ -1,0 +1,68 @@
+-- 1. BASIC (SCAN + PROJECTION)
+SELECT * FROM users;
+
+SELECT name, age FROM users;
+
+
+-- 2. FILTER (WHERE)
+SELECT * FROM users WHERE age > 25;
+
+SELECT name FROM users WHERE age > 25 AND salary > 50000;
+
+
+-- 3. JOIN (CORE)
+SELECT u.name, o.price
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+
+
+-- 4. JOIN + WHERE (MAIN DEMO)
+SELECT u.name, o.price
+FROM users u
+JOIN orders o ON u.id = o.user_id
+WHERE o.price > 100;
+
+
+-- 5. MULTIPLE JOIN (ADVANCED)
+SELECT u.name, o.price, p.name
+FROM users u
+JOIN orders o ON u.id = o.user_id
+JOIN products p ON o.product_id = p.id;
+
+
+-- 6. JOIN + MULTI FILTER
+SELECT u.name, o.price
+FROM users u
+JOIN orders o ON u.id = o.user_id
+WHERE o.price > 100 AND u.age > 25;
+
+
+-- 7. STRING CONDITION
+SELECT name FROM users WHERE city = 'Delhi';
+
+
+-- 8. COMPLEX CONDITIONS (NESTED)
+SELECT * FROM users
+WHERE age > 25 OR (salary > 50000 AND city = 'Mumbai');
+
+
+-- 9. SELECT ALL + JOIN
+SELECT *
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+
+
+-- 10. INVALID QUERY (ERROR TEST)
+SELECT FROM users;
+
+
+-- 11. NON-SELECT (VALIDATION)
+UPDATE users SET age = 30 WHERE id = 1;
+
+
+-- ⭐ FINAL DEMO QUERY (USE THIS)
+SELECT u.name, o.price, p.name
+FROM users u
+JOIN orders o ON u.id = o.user_id
+JOIN products p ON o.product_id = p.id
+WHERE o.price > 100 AND u.age > 25;
