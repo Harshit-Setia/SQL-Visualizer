@@ -32,7 +32,7 @@ export const generatePlan = (rawAst: unknown): PlanData => {
       `Table Scan: ${tableObj.table}`
     )
     
-    const joinCondition = tableObj.on ? parseExpr(tableObj.on):""
+    const joinCondition = tableObj ? parseExpr(tableObj):""
     const joinType =tableObj.join?.join || "JOIN"
     const joinId = createNode("JOIN", `${joinType} ON ${joinCondition}`)
 
